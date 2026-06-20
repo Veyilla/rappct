@@ -158,6 +158,7 @@ unsafe fn grant_sid_access(target: ResourcePath, sid_sddl: &str, access: u32) ->
     trustee.TrusteeType = TRUSTEE_TYPE(TRUSTEE_IS_WELL_KNOWN_GROUP.0);
     trustee.ptstrName = PWSTR(trustee_psid.0 as *mut _);
 
+    // SAFETY: EXPLICIT_ACCESS_W is a plain Win32 struct; zero is a valid initial state.
     let mut ea: EXPLICIT_ACCESS_W = unsafe { std::mem::zeroed() };
     ea.grfAccessPermissions = access;
     ea.grfAccessMode = windows::Win32::Security::Authorization::GRANT_ACCESS;
