@@ -29,3 +29,9 @@ Die Release-Kette läuft wie folgt ab:
 ---
 
 *Dies ist die deutschsprachige Übersetzung von [`README.md`](./README.md).*
+
+---
+
+> **Fork-Hinweis:** Dieses Repository ist ein Fork von [cpjet64/rappct](https://github.com/cpjet64/rappct).
+> Zusätzliche Erweiterungen in diesem Fork:
+> - `UseCase::McpServerSandbox` — Isolierte LPAC-Sandbox für MCP-Server-Prozesse ohne Netz- oder Bibliotheksrechte
