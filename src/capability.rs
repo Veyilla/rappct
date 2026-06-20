@@ -566,6 +566,13 @@ pub enum UseCase {
     MinimalLpac,
     /// Safer desktop-style baseline for interactive workloads.
     FullDesktopApp,
+    /// Isolated sandbox for MCP (Model Context Protocol) server processes.
+    ///
+    /// LPAC is enabled by default. No network or library capabilities are
+    /// granted — only the minimal COM plumbing required for Windows IPC.
+    /// Callers that need additional rights should follow this preset with
+    /// `.with_profile_sid(sid).with_known(&[...])`.
+    McpServerSandbox,
     /// No preset; callers should add capabilities explicitly.
     Custom,
 }
@@ -664,6 +671,14 @@ impl SecurityCapabilitiesBuilder {
                     KnownCapability::InternetClientServer.as_str().to_string(),
                     KnownCapability::UserAccountInformation.as_str().to_string(),
                 ]);
+            }
+            UseCase::McpServerSandbox => {
+                // Minimal COM infrastructure so the sandboxed process can reach
+                // essential Windows brokering. No internet or network caps are
+                // included — those must be added explicitly by the caller if a
+                // specific MCP server requires them.
+                caps_named.push(KnownCapability::LpacCom.as_str().to_string());
+                lpac = true;
             }
             UseCase::Custom => {}
         };
@@ -944,6 +959,18 @@ mod builder_tests {
                 .with_profile_sid(&sample_sid())
                 .lpac_enabled_for_test(),
             "custom use case should remain non-LPAC by default"
+        );
+
+        let mcp = SecurityCapabilitiesBuilder::from_use_case(UseCase::McpServerSandbox);
+        let mcp_names: Vec<&str> = mcp
+            .named_caps_for_test()
+            .iter()
+            .map(|s| s.as_str())
+            .collect();
+        assert_eq!(mcp_names, vec!["lpacCom"], "MCP sandbox should only grant lpacCom");
+        assert!(
+            mcp.with_profile_sid(&sample_sid()).lpac_enabled_for_test(),
+            "MCP sandbox must enable LPAC"
         );
     }
 
