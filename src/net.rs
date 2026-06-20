@@ -28,7 +28,6 @@ unsafe fn pwstr_to_string(ptr: PWSTR) -> String {
     }
     let mut len = 0usize;
     // SAFETY: Walk until trailing NUL; then build a slice over initialized code units.
-    // SAFETY: Walk until trailing NUL; then create a slice over initialized code units.
     unsafe {
         while *ptr.0.add(len) != 0 {
             len += 1;
@@ -43,7 +42,6 @@ unsafe fn psid_to_string(psid: PSID) -> Result<String> {
     use windows::Win32::Security::Authorization::ConvertSidToStringSidW;
     let mut raw = PWSTR::null();
     // SAFETY: `psid` is a valid SID; API returns a LocalAlloc PWSTR which we free via guard.
-    // SAFETY: Convert a valid SID to SDDL; returned buffer is LocalAlloc-managed.
     unsafe {
         ConvertSidToStringSidW(psid, &mut raw)
             .map_err(|e| AcError::Win32(format!("ConvertSidToStringSidW failed: {e}")))?;
@@ -82,7 +80,6 @@ pub fn list_appcontainers() -> Result<Vec<(AppContainerSid, String)>> {
         let mut count: u32 = 0;
         let mut arr: *mut INET_FIREWALL_APP_CONTAINER = std::ptr::null_mut();
         // SAFETY: Enumerates app containers; returns count and array to be freed via API.
-        // SAFETY: Call enumeration API to retrieve array and count.
         let err = NetworkIsolationEnumAppContainers(
             NETISO_FLAG_FORCE_COMPUTE_BINARIES.0 as u32,
             &mut count,
@@ -119,7 +116,6 @@ pub fn list_appcontainers() -> Result<Vec<(AppContainerSid, String)>> {
         let mut cfg_count: u32 = 0;
         let mut cfg_arr: *mut SID_AND_ATTRIBUTES = std::ptr::null_mut();
         // SAFETY: Retrieves current loopback config; returns SID_AND_ATTRIBUTES array to be LocalFreed.
-        // SAFETY: Retrieve firewall appcontainer config into LocalAlloc array.
         let cfg_err = NetworkIsolationGetAppContainerConfig(&mut cfg_count, &mut cfg_arr);
         if cfg_err != 0 {
             return Err(AcError::Win32(format!(
