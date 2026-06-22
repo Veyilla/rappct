@@ -98,7 +98,6 @@ pub fn grant_to_capability(
 }
 
 #[cfg(windows)]
-#[allow(unsafe_op_in_unsafe_fn)]
 unsafe fn grant_sid_access(target: ResourcePath, sid_sddl: &str, access: u32) -> Result<()> {
     use windows::Win32::Foundation::HANDLE;
     use windows::Win32::Security::Authorization::{
@@ -153,12 +152,14 @@ unsafe fn grant_sid_access(target: ResourcePath, sid_sddl: &str, access: u32) ->
     let trustee_psid = windows::Win32::Security::PSID(psid_guard.as_ptr());
 
     // Build trustee and explicit access
-    let mut trustee: TRUSTEE_W = std::mem::zeroed();
+    // SAFETY: TRUSTEE_W and EXPLICIT_ACCESS_W are plain Win32 structs; zero is a valid initial state.
+    let mut trustee: TRUSTEE_W = unsafe { std::mem::zeroed() };
     trustee.TrusteeForm = TRUSTEE_FORM(TRUSTEE_IS_SID.0);
     trustee.TrusteeType = TRUSTEE_TYPE(TRUSTEE_IS_WELL_KNOWN_GROUP.0);
     trustee.ptstrName = PWSTR(trustee_psid.0 as *mut _);
 
-    let mut ea: EXPLICIT_ACCESS_W = std::mem::zeroed();
+    // SAFETY: EXPLICIT_ACCESS_W is a plain Win32 struct; zero is a valid initial state.
+    let mut ea: EXPLICIT_ACCESS_W = unsafe { std::mem::zeroed() };
     ea.grfAccessPermissions = access;
     ea.grfAccessMode = windows::Win32::Security::Authorization::GRANT_ACCESS;
     ea.Trustee = trustee;
@@ -343,7 +344,8 @@ unsafe fn grant_sid_access(target: ResourcePath, sid_sddl: &str, access: u32) ->
                 )
             };
             if st2.0 != 0 {
-                let _ = RegCloseKey(hkey);
+                // SAFETY: hkey was successfully opened above; close it on error exit.
+                let _ = unsafe { RegCloseKey(hkey) };
                 return Err(AcError::Win32(format!(
                     "GetSecurityInfo(reg) failed: {st2:?}"
                 )));
@@ -357,7 +359,8 @@ unsafe fn grant_sid_access(target: ResourcePath, sid_sddl: &str, access: u32) ->
                 SetEntriesInAclW(Some(&entries), Some(p_dacl as *const ACL), &mut new_dacl)
             };
             if st3.0 != 0 {
-                let _ = RegCloseKey(hkey);
+                // SAFETY: hkey was successfully opened above; close it on error exit.
+                let _ = unsafe { RegCloseKey(hkey) };
                 return Err(AcError::Win32(format!(
                     "SetEntriesInAclW(reg) failed: {st3:?}"
                 )));

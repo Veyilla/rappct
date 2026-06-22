@@ -23,3 +23,13 @@ __pycache__/
 # Agent runtime artifacts
 .agent-logs/
 .agent-state/
+
+# Claude and AI Agent instructions
+CLAUDE.md
+claude.md
+.claude/
+
+# Agent instructions and guidelines
+AGENTS.md
+.AGENTS/
+AGENTS/
