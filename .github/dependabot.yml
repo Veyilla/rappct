@@ -8,14 +8,14 @@ updates:
     schedule:
       interval: "weekly"
     target-branch: "main"
-    labels: ["Dependencies / AbhÃ¤ngigkeiten"]
+    labels: ["Dependencies / Abhängigkeiten"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
     target-branch: "main"
-    labels: ["Dependencies / AbhÃ¤ngigkeiten"]
+    labels: ["Dependencies / Abhängigkeiten"]
     ignore:
       # Keep MSRV job pinned at 1.88.0; do not bump rust-toolchain action beyond MSRV
       - dependency-name: "dtolnay/rust-toolchain"
